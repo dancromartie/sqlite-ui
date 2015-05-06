@@ -1,0 +1,112 @@
+<script type='text/javascript' src='/static/jquery-1.11.2.min.js'></script>
+<script type='text/javascript' src='/static/jquery.hotkeys.js'></script>
+
+<style type='text/css'>
+    .query{
+        width: 500px;
+    }
+    table td{
+        border: 1px solid black;
+    }
+    #bottom-bar{
+        position: fixed;
+        bottom: 0px;
+        width: 100%;
+    }
+    #bottom-bar-input{
+        padding-left: 10px;
+        font-size: 25px;
+        background: green;
+        height: 50px;
+        width: 100%;
+    }
+
+    #command-results{
+        position: fixed;
+        overflow: scroll;
+        top: 0px;
+        padding-left: 10px;
+        font-size: 15px;
+        background: orange;
+        height: 500px;
+        width: 100%;
+    }
+
+</style>
+
+<button id='new-query' type='submit'>new query</button>
+
+<div id='command-results' style='display:none'></div>
+<div id='queries'>
+</div>
+
+<div id='results'>
+</div>
+
+<div id='bottom-bar'>
+    <input id='bottom-bar-input' />
+</div>
+
+<script type='text/javascript'>
+
+    last_focused_elem = null;
+    var bottom_bar = function(){
+        var bottom_bar_visible = $("#bottom-bar").is(":visible");
+        console.log("bbv is", bottom_bar_visible);
+        if(! bottom_bar_visible){
+            console.log("going to make bottmo bar focused");
+            last_focused_elem = $(document.activeElement);
+        }
+        console.log("bbv is now", bottom_bar_visible);
+        $("#bottom-bar").toggle();
+        if(bottom_bar_visible){
+            last_focused_elem.focus();
+        }else{
+            $("#bottom-bar-input").val(":  ")
+            $("#bottom-bar-input").focus();
+        }
+    };
+
+    var new_query = function(){
+        var query_div = $("<div></div>");
+        var query_input = $("<textarea class='query'></textarea>");
+        var button = $("<button class='submit-button'>query</button>");
+        query_div.append(query_input).append(button).appendTo("#queries");
+        query_input.on('keydown', null, 'ctrl+b', function(){ bottom_bar(); });
+    };
+
+    var render_command_results = function(data){
+        var display_text = data + "<br/>........ press esc key to continue";
+        $("#command-results").show().html(display_text);
+    }
+
+    var execute_command = function(){
+        var command = $("#bottom-bar-input").val();
+        var params = {"command": command};
+        $.get("command", params, function(data){ render_command_results(data)});
+    };
+
+    $(document).ready(function(){
+
+        $(document).on('keydown', null, 'ctrl+b', function(){ bottom_bar(); });
+        $("#bottom-bar-input, document").on('keydown', null, 'esc', function(){ $("#command-results").hide(); });
+        $("#bottom-bar-input").on('keydown', null, 'return', function(){ execute_command(); });
+        $("#bottom-bar-input").on('keydown', null, 'ctrl+b', function(){ bottom_bar(); });
+        $("#bottom-bar").hide();
+
+        $("#queries").on("click", ".submit-button", function(){
+            console.log($(this));
+            var query = $(this).siblings(".query").val();
+            var params = {"query": query};
+            $.get("query", params, function(data){
+                $("#results").html(data); 
+            });
+        });
+
+        $("#new-query").click(function(){
+            new_query();
+        });
+
+    });
+
+</script>
