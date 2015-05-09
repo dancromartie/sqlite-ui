@@ -19,8 +19,7 @@ webapp = Flask(
     template_folder="../templates"
 )
 
-db_conn = sqlite3.connect(":memory:", check_same_thread=False)
-db_conn.row_factory = sqlite3.Row
+db_conn = None
 
 
 def load_db(path):
@@ -45,9 +44,17 @@ def load_db(path):
     #db_conn.executescript(dump_commands)
 
 
-load_db(sys.argv[1])
+if sys.argv[1] == "memory":
+    print "creating in memory connection"
+    db_conn = sqlite3.connect(":memory:", check_same_thread=False)
+    load_db(sys.argv[2])
+elif sys.argv[1] == "disk":
+    print "creating connection to disk"
+    db_conn = sqlite3.connect(sys.argv[2], check_same_thread=False)
+else:
+    sys.exit("unknown db type argument")
 
-
+db_conn.row_factory = sqlite3.Row
 def query_to_dicts(query, params, all_as_string=False):
     dicts = []
     cursor = db_conn.cursor()
