@@ -123,12 +123,26 @@ def exec_command():
 
 
 @webapp.route("/sqlite-server/query", methods=["GET"])
-def query():
+def do_query():
     results_template = env.get_template('results.html')
     results = []
     keys = []
-    if "query" in request.args:
-        results = query_to_dicts(request.args["query"], (), all_as_string=True)
+    if "active_query" in request.args:
+        query = request.args["active_query"] 
+        all_queries = json.loads(request.args["all_queries"])
+        remaining_substitutions = True
+        while remaining_substitutions:
+            found_query_id = False
+            for key in all_queries:
+                if key in query:
+                    replacement = "(%s)" % all_queries[key].replace(";", "")
+                    query = query.replace(key, replacement)
+                    found_query_id = True
+                if not found_query_id:
+                    remaining_substitutions = False
+
+        print "final query is %s" % query
+        results = query_to_dicts(query, (), all_as_string=True)
         if len(results) > 0:
             keys = results[0].keys()
             keys.sort()

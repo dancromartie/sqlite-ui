@@ -6,6 +6,9 @@
         width: 500px;
         margin-bottom: 20px;
     }
+    #new-query{
+        background: red;
+    }
     table td{
         border: 1px solid black;
     }
@@ -31,8 +34,6 @@
         background: orange;
         height: 500px;
         width: 100%;
-    }
-    #new-query{
         background: red;
         margin-bottom: 10px;
     }
@@ -74,8 +75,17 @@
 
     var new_query = function(){
         var query_div = $("<div></div>");
+        var random_id = "qqq";
+        for(var i = 0; i < 5; i++){
+            var letters = ["a", "b", "c", "1", "2", "3"];
+            var random_int = parseInt(Math.random() * letters.length - 1);
+            var random_letter = letters[random_int];
+            random_id += random_letter;
+        }
+        var id_div = $("<div class='query-id'></div>").text(random_id);
         var query_input = $("<textarea class='query'></textarea>");
-        query_div.append(query_input).appendTo("#queries");
+        query_input.attr("query-id", random_id);
+        query_div.append(id_div).append(query_input).appendTo("#queries");
         query_input.on('keydown', null, 'ctrl+b', function(){ bottom_bar(); });
         query_input.on('keydown', null, 'ctrl+e', function(){ submit_query(); });
     };
@@ -92,8 +102,13 @@
     };
 
     var submit_query = function(){
-        var query = $(document.activeElement).val();
-        var params = {"query": query};
+        var active_query = $(document.activeElement).val();
+        var all_queries = {};
+        $(".query").each(function(key, val){
+            all_queries[$(this).attr("query-id")] = $(this).val();
+        });
+        console.log(all_queries);
+        var params = {"active_query": active_query, "all_queries": JSON.stringify(all_queries)}
         $.get("query", params, function(data){
             $("#results").html(data); 
         });
